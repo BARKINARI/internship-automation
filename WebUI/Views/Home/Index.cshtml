@@ -1,0 +1,302 @@
+﻿@model WebUI.Dtos.StajBasvuruDtos.CreateStajBasvuruDto
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="AE Yazılım Staj Başvuru Sistemi">
+    <meta name="author" content="AE Yazılım">
+
+    <title>Staj Başvuru Formu - AE Yazılım Staj Başvuru Sistemi</title>
+
+    <!-- SB Admin 2 Fonts and Styles -->
+    <link href="~/startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <link href="~/startbootstrap-sb-admin-2-gh-pages/css/sb-admin-2.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f8f9fc;
+        }
+        .public-navbar {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .hero-banner {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            color: white;
+            padding: 40px 0 50px 0;
+            margin-bottom: -40px;
+        }
+        .form-card {
+            border-radius: 15px;
+            overflow: hidden;
+            border: none;
+        }
+        .section-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background-color: #4e73df;
+            color: white;
+            border-radius: 50%;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        .custom-file-label::after {
+            content: "Gözat";
+        }
+    </style>
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- Header / Navbar -->
+    <nav class="navbar navbar-expand navbar-dark public-navbar py-3 sticky-top">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="navbar-brand font-weight-bold d-flex align-items-center text-white" href="/">
+                <div class="rounded-circle bg-white text-primary p-2 mr-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 42px; height: 42px;">
+                    <i class="fas fa-graduation-cap fa-lg"></i>
+                </div>
+                <div>
+                    <span style="font-size: 1.25rem;">AE Yazılım Staj Başvuru Sistemi</span>
+                    <small class="d-block text-white-50" style="font-size: 0.75rem; margin-top: -3px;">Öğrenci Başvuru Sistemi</small>
+                </div>
+            </a>
+
+            <div class="d-flex align-items-center">
+                <a href="/Login/Index" class="btn btn-light btn-sm px-4 py-2 text-primary font-weight-bold shadow-sm">
+                    <i class="fas fa-sign-in-alt mr-1"></i> Giriş Yap
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <div class="hero-banner text-center">
+        <div class="container pb-4">
+            <h1 class="h2 font-weight-bold mb-0">Staj Başvuru Formu</h1>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <div class="container my-4 flex-grow-1">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 mb-4" role="alert" style="border-left: 5px solid #1cc88a !important;">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle fa-2x text-success mr-3"></i>
+                            <div>
+                                <h5 class="alert-heading font-weight-bold mb-1">Başvurunuz Başarıyla Alındı!</h5>
+                                <p class="mb-0">@TempData["SuccessMessage"]</p>
+                            </div>
+                        </div>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                }
+
+                @if (TempData["InfoMessage"] != null)
+                {
+                    <div class="alert alert-info alert-dismissible fade show shadow-sm border-0 mb-4" role="alert" style="border-left: 5px solid #36b9cc !important;">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-info-circle fa-2x text-info mr-3"></i>
+                            <div>
+                                <h5 class="alert-heading font-weight-bold mb-1">Bilgilendirme</h5>
+                                <p class="mb-0">@TempData["InfoMessage"]</p>
+                            </div>
+                        </div>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                }
+
+                @if (ViewBag.ErrorMessage != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4" role="alert" style="border-left: 5px solid #e74a3b !important;">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-exclamation-triangle fa-2x text-danger mr-3"></i>
+                            <div>
+                                <h5 class="alert-heading font-weight-bold mb-1">Lütfen Dikkat!</h5>
+                                <p class="mb-0">@ViewBag.ErrorMessage</p>
+                            </div>
+                        </div>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                }
+
+                <div class="card shadow-lg form-card mb-5">
+                    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-edit mr-1"></i> Başvuru Bilgilerinizi Eksiksiz Doldurunuz
+                        </h6>
+                        <small class="text-muted"><span class="text-danger">*</span> işaretli alanların doldurulması zorunludur.</small>
+                    </div>
+
+                    <div class="card-body p-4 p-md-5">
+                        <form method="post" action="/Home/Index" enctype="multipart/form-data">
+
+                            <!-- 1. Bölüm: Kişisel Bilgiler -->
+                            <div class="row mb-4">
+                                <div class="col-12 mb-3">
+                                    <h6 class="font-weight-bold text-gray-800 d-flex align-items-center">
+                                        <span class="section-badge">1</span> Kişisel Bilgiler
+                                    </h6>
+                                    <hr class="mt-2 mb-3">
+                                </div>
+
+                                <div class="col-md-6 form-group">
+                                    <label class="font-weight-bold text-gray-700">Adınız <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-user" asp-for="Ad" required>
+                                </div>
+
+                                <div class="col-md-6 form-group">
+                                    <label class="font-weight-bold text-gray-700">Soyadınız <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-user" asp-for="Soyad" required>
+                                </div>
+
+                                <div class="col-md-6 form-group">
+                                    <label class="font-weight-bold text-gray-700">E-Posta Adresiniz <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control form-control-user" asp-for="Eposta" required>
+                                    <small class="form-text text-muted">Başvuru sonucunuz bu e-posta adresine iletilecektir.</small>
+                                </div>
+
+                                <div class="col-md-6 form-group">
+                                    <label class="font-weight-bold text-gray-700">Telefon Numarası <span class="text-danger">*</span></label>
+                                    <input type="tel" class="form-control form-control-user" asp-for="Telefon" required>
+                                </div>
+                            </div>
+
+                            <!-- 2. Bölüm: Eğitim Bilgileri -->
+                            <div class="row mb-4">
+                                <div class="col-12 mb-3">
+                                    <h6 class="font-weight-bold text-gray-800 d-flex align-items-center">
+                                        <span class="section-badge">2</span> Eğitim Bilgileri
+                                    </h6>
+                                    <hr class="mt-2 mb-3">
+                                </div>
+
+                                <div class="col-md-6 form-group">
+                                    <label class="font-weight-bold text-gray-700">Üniversite / Okul <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" asp-for="Okul" required>
+                                </div>
+
+                                <div class="col-md-6 form-group">
+                                    <label class="font-weight-bold text-gray-700">Bölüm <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" asp-for="Bolum" required>
+                                </div>
+
+                                <div class="col-md-6 form-group">
+                                    <label class="font-weight-bold text-gray-700">Sınıf <span class="text-danger">*</span></label>
+                                    <select class="form-control" asp-for="Sinif" required>
+                                        <option value="">Seçiniz...</option>
+                                        <option value="1. Sınıf">1. Sınıf</option>
+                                        <option value="2. Sınıf">2. Sınıf</option>
+                                        <option value="3. Sınıf">3. Sınıf</option>
+                                        <option value="4. Sınıf">4. Sınıf</option>
+                                        <option value="Mezun">Mezun</option>
+                                        <option value="Yüksek Lisans">Yüksek Lisans</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6 form-group">
+                                    <label class="font-weight-bold text-gray-700">Referans (Varsa)</label>
+                                    <input type="text" class="form-control" asp-for="Referans">
+                                </div>
+                            </div>
+
+                            <!-- 3. Bölüm: Staj Tercihleri ve Dosyalar -->
+                            <div class="row mb-4">
+                                <div class="col-12 mb-3">
+                                    <h6 class="font-weight-bold text-gray-800 d-flex align-items-center">
+                                        <span class="section-badge">3</span> Staj Detayları & Özgeçmiş (CV)
+                                    </h6>
+                                    <hr class="mt-2 mb-3">
+                                </div>
+
+                                <div class="col-md-6 form-group">
+                                    <label class="font-weight-bold text-gray-700">Staj Başlangıç Tarihi <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" asp-for="StajBaslangicTarihi" required>
+                                </div>
+
+                                <div class="col-md-6 form-group">
+                                    <label class="font-weight-bold text-gray-700">Staj Bitiş Tarihi <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" asp-for="StajBitisTarihi" required>
+                                </div>
+
+                                <div class="col-md-6 form-group">
+                                    <label class="font-weight-bold text-gray-700">İlgilendiğiniz Alan / Staj Konusu</label>
+                                    <input type="text" class="form-control" asp-for="StajKonusu">
+                                </div>
+
+                                <div class="col-md-6 form-group">
+                                    <label class="font-weight-bold text-gray-700">CV / Özgeçmiş Dosyası (PDF veya DOCX)</label>
+                                    <div class="custom-file">
+                                        <input type="file" class="custom-file-input" id="cvFile" name="cvFile" accept=".pdf,.doc,.docx">
+                                        <label class="custom-file-label" for="cvFile">Dosya Seçiniz...</label>
+                                    </div>
+                                    <small class="form-text text-muted">Maksimum dosya boyutu: 10 MB</small>
+                                </div>
+
+                                <div class="col-12 form-group">
+                                    <label class="font-weight-bold text-gray-700">Kendinizi Tanıtın (Ön Yazı / Beklentileriniz)</label>
+                                    <textarea class="form-control" rows="4" asp-for="KendiniTanitmaYazisi"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Gönder Butonu -->
+                            <div class="text-center pt-3 border-top">
+                                <button type="submit" class="btn btn-primary btn-lg px-5 py-3 font-weight-bold shadow">
+                                    <i class="fas fa-paper-plane mr-2"></i> Başvurumu Gönder
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white py-4 border-top mt-auto text-center text-muted">
+        <div class="container">
+            <small>Telif Hakkı &copy; AE Yazılım Staj Başvuru Sistemi 2026 - Tüm Hakları Saklıdır.</small>
+        </div>
+    </footer>
+
+    <!-- Bootstrap Core JS -->
+    <script src="~/startbootstrap-sb-admin-2-gh-pages/vendor/jquery/jquery.min.js"></script>
+    <script src="~/startbootstrap-sb-admin-2-gh-pages/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/startbootstrap-sb-admin-2-gh-pages/vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="~/startbootstrap-sb-admin-2-gh-pages/js/sb-admin-2.min.js"></script>
+
+    <script>
+        // Dosya seçildiğinde adını label üzerinde göster
+        $(".custom-file-input").on("change", function () {
+            var fileName = $(this).val().split("\\").pop();
+            $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+        });
+    </script>
+
+</body>
+
+</html>

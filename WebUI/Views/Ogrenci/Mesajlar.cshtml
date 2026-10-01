@@ -1,0 +1,1098 @@
+﻿@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@model List<WebUI.Dtos.MesajDtos.ResultMesajDto>
+
+@{
+    Layout = null;
+    string apiBaseUrl = Configuration["ApiSettings:BaseUrl"] ?? "https://localhost:7125";
+    WebUI.Dtos.MesajDtos.OgrenciBasvuruBilgiDto? ogrenciBilgi = ViewBag.OgrenciBilgi;
+    string ogrenciAdSoyad = ViewBag.OgrenciAdSoyad ?? "Öğrenci";
+    var projeler = ViewBag.Projeler as List<WebUI.Dtos.ProjeDtos.ResultStajyerProjeDto> ?? new List<WebUI.Dtos.ProjeDtos.ResultStajyerProjeDto>();
+    var unreadCounts = ViewBag.UnreadCounts as Dictionary<int, int> ?? new Dictionary<int, int>();
+    var lastMsgTimes = ViewBag.LastMsgTimes as Dictionary<int, string> ?? new Dictionary<int, string>();
+    int totalUnread = ViewBag.TotalUnread != null ? (int)ViewBag.TotalUnread : 0;
+    int? initialProjeId = ViewBag.InitialProjeId as int?;
+    int basvuruId = ViewBag.BasvuruId != null ? (int)ViewBag.BasvuruId : 0;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="AE Yazılım Stajyer Mesajlaşma ve Proje Takip Paneli">
+    <meta name="author" content="AE Yazılım">
+
+    <title>Stajyer Portalı - AE Yazılım Staj Sistemi</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="~/startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="~/startbootstrap-sb-admin-2-gh-pages/css/sb-admin-2.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f8f9fc;
+        }
+        .public-navbar {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .chat-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            height: calc(100vh - 190px);
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e3e6f0;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 120, 0.12);
+        }
+        .chat-layout {
+            display: flex;
+            height: 100%;
+            overflow: hidden;
+        }
+        .chat-sidebar {
+            width: 350px;
+            min-width: 300px;
+            border-right: 1px solid #e9ecef;
+            display: flex;
+            flex-direction: column;
+            background: #fdfdfd;
+        }
+        .chat-sidebar-header {
+            padding: 14px 16px;
+            background: #f8f9fc;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .chat-conversation-list {
+            flex: 1;
+            overflow-y: auto;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .chat-conversation-item {
+            padding: 13px 16px;
+            border-bottom: 1px solid #f1f3f9;
+            display: flex;
+            align-items: center;
+            text-decoration: none !important;
+            color: inherit;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .chat-conversation-item:hover {
+            background-color: #f1f5fd;
+        }
+        .chat-conversation-item.active {
+            background-color: #eaf1fb;
+            border-left: 4px solid #4e73df;
+        }
+        .student-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4e73df, #224abe);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 15px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #f8f9fc;
+            background-image: radial-gradient(#d1d7db 1px, transparent 1px);
+            background-size: 20px 20px;
+            overflow: hidden;
+        }
+        .chat-header {
+            background: #fff;
+            border-bottom: 1px solid #e3e6f0;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 2;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .bubble {
+            max-width: 70%;
+            padding: 9px 14px;
+            border-radius: 8px;
+            position: relative;
+            word-wrap: break-word;
+            font-size: 14.5px;
+            line-height: 1.45;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+        }
+        .bubble-out {
+            align-self: flex-end;
+            background-color: #d9fdd3;
+            border-top-right-radius: 2px;
+            color: #111b21;
+        }
+        .bubble-in {
+            align-self: flex-start;
+            background-color: #ffffff;
+            border-top-left-radius: 2px;
+            color: #111b21;
+            border: 1px solid #e3e6f0;
+        }
+        .bubble-sender {
+            font-size: 11.5px;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+        .bubble-in .bubble-sender {
+            color: #4e73df;
+        }
+        .bubble-out .bubble-sender {
+            color: #2b5278;
+        }
+        .bubble-time {
+            font-size: 10.5px;
+            color: #667781;
+            text-align: right;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+        }
+        .chat-footer {
+            background: #fff;
+            padding: 10px 16px;
+            display: flex;
+            flex-direction: column;
+            border-top: 1px solid #e3e6f0;
+        }
+        .attachment-preview-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #eef2fd;
+            border: 1px dashed #4e73df;
+            border-radius: 8px;
+            padding: 7px 12px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        .chat-attachment-card {
+            display: flex;
+            align-items: center;
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-top: 6px;
+            text-decoration: none !important;
+            transition: all 0.15s ease;
+            max-width: 100%;
+        }
+        .chat-attachment-card:hover {
+            background: #f8f9fc;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .chat-attachment-icon {
+            font-size: 22px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .chat-attachment-info {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex: 1;
+        }
+        .chat-attachment-name {
+            font-weight: 600;
+            color: #2e384d;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .chat-attachment-meta {
+            font-size: 11px;
+            color: #858796;
+        }
+        .chat-img-thumb {
+            max-width: 280px;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 6px;
+            display: block;
+            object-fit: cover;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        .chat-input {
+            border-radius: 24px;
+            padding: 10px 18px;
+            border: 1px solid #d1d3e2;
+            outline: none;
+            resize: none;
+            font-size: 14px;
+        }
+        .chat-input:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+        .btn-send {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #4e73df;
+            color: white;
+            border: none;
+            transition: transform 0.15s ease, background 0.15s ease;
+            flex-shrink: 0;
+        }
+        .btn-send:hover {
+            background: #2e59d9;
+            transform: scale(1.05);
+            color: white;
+        }
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #858796;
+            text-align: center;
+            padding: 40px;
+        }
+        @@media (max-width: 768px) {
+            .chat-layout {
+                flex-direction: column;
+            }
+            .chat-sidebar {
+                width: 100%;
+                min-width: auto;
+                height: auto;
+            }
+            .chat-card {
+                height: auto;
+                min-height: auto;
+            }
+            .chat-messages {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- Üst Navbar (SB Admin 2 Teması) -->
+    <nav class="navbar navbar-expand navbar-dark public-navbar py-3 sticky-top">
+        <div class="container-fluid px-lg-4 d-flex justify-content-between align-items-center">
+            <a class="navbar-brand font-weight-bold d-flex align-items-center text-white" href="/">
+                <div class="rounded-circle bg-white text-primary p-2 mr-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 42px; height: 42px;">
+                    <i class="fas fa-graduation-cap fa-lg"></i>
+                </div>
+                <div>
+                    <span style="font-size: 1.25rem;">AE Yazılım Staj Sistemi</span>
+                    <small class="d-block text-white-50" style="font-size: 0.75rem; margin-top: -3px;">Stajyer Portalı</small>
+                </div>
+            </a>
+
+            <div class="d-flex align-items-center">
+                <div class="text-right mr-3 text-white d-none d-md-block">
+                    <div class="font-weight-bold" style="font-size: 14px;">
+                        <i class="fas fa-user-graduate mr-1"></i> @ogrenciAdSoyad
+                    </div>
+                    <small class="text-white-50">
+                        @(ogrenciBilgi != null ? $"{ogrenciBilgi.Okul} - {ogrenciBilgi.Bolum}" : "Kabul Edilen Stajyer")
+                    </small>
+                </div>
+                <a href="/Ogrenci/Cikis" class="btn btn-outline-light btn-sm font-weight-bold shadow-sm" title="Oturumu Kapat">
+                    <i class="fas fa-sign-out-alt mr-1"></i> Çıkış Yap
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Ana İçerik -->
+    <div class="container-fluid px-lg-4 my-3 flex-grow-1">
+        
+        <!-- Başlık & Butonlar -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
+            <div class="mb-2 mb-md-0">
+                <h1 class="h4 font-weight-bold text-gray-800 mb-1">
+                    <i class="fas fa-comments text-primary mr-2"></i>Staj Koordinatörlüğü Mesajlaşma & Görev Paneli
+                </h1>
+                <p class="text-muted small mb-0">
+                    Projelerinize özel ayrı sohbet pencereleri üzerinden koordinatörünüz ile mesajlaşabilir ve görev teslimlerinizi yapabilirsiniz.
+                </p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-primary btn-sm font-weight-bold shadow-sm mr-2" data-toggle="modal" data-target="#modalProjelerim">
+                    <i class="fas fa-project-diagram mr-1"></i> Projelerim & Görevlerim
+                    <span class="badge badge-light text-primary ml-1">@projeler.Count</span>
+                </button>
+                <span class="badge badge-success px-3 py-2 font-weight-bold shadow-sm">
+                    <i class="fas fa-check-circle mr-1"></i> Kabul Edildi
+                </span>
+            </div>
+        </div>
+
+        <!-- Ana Mesajlaşma Kartı -->
+        <div class="chat-card shadow border-0">
+            <div class="chat-layout">
+
+                <!-- Sol Panel: Proje Bazlı Sohbet Listesi -->
+                <div class="chat-sidebar">
+                    <div class="chat-sidebar-header">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="font-weight-bold text-gray-800" style="font-size: 14px;">
+                                <i class="fas fa-folder-open mr-1 text-primary"></i> Proje Sohbetlerim
+                            </span>
+                            <span class="badge badge-primary badge-pill px-2 py-1">
+                                @projeler.Count Proje
+                            </span>
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
+                            </div>
+                            <input type="text" id="searchProjectInput" class="form-control border-left-0" placeholder="Proje ara...">
+                        </div>
+                    </div>
+
+                    <!-- Konuşma Listesi -->
+                    <ul class="chat-conversation-list" id="projectConversationList">
+                        @if (projeler != null && projeler.Any())
+                        {
+                            foreach (var p in projeler)
+                            {
+                                int pUnread = unreadCounts.TryGetValue(p.ProjeId, out int cnt) ? cnt : 0;
+                                string pLastTime = lastMsgTimes.TryGetValue(p.ProjeId, out var tm) ? tm : "";
+
+                                <li class="conversation-item-wrapper">
+                                    <div class="chat-conversation-item" 
+                                         data-proje-id="@p.ProjeId"
+                                         data-proje-baslik="@p.ProjeBaslik"
+                                         data-durum-metni="@p.DurumMetni"
+                                         data-durum-rozet="@p.DurumRozet"
+                                         data-stajyer-proje-id="@p.StajyerProjeId"
+                                         data-search="@p.ProjeBaslik.ToLower() @p.DurumMetni.ToLower()">
+                                        <div class="student-avatar" style="width: 42px; height: 42px; font-size: 15px;">
+                                            <i class="fas fa-project-diagram"></i>
+                                        </div>
+                                        <div class="flex-grow-1 min-w-0 mr-2" style="overflow: hidden;">
+                                            <div class="d-flex justify-content-between align-items-baseline mb-1">
+                                                <span class="font-weight-bold text-gray-900 text-truncate" style="font-size: 13.5px;" title="@p.ProjeBaslik">
+                                                    @p.ProjeBaslik
+                                                </span>
+                                                <small class="text-muted item-msg-time" style="font-size: 11px;">@pLastTime</small>
+                                            </div>
+                                            <div class="d-flex align-items-center flex-wrap" style="gap: 4px;">
+                                                <span class="badge @p.DurumRozet px-1 py-0 font-weight-normal" style="font-size: 9.5px;">
+                                                    @p.DurumMetni
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="unread-badge-container">
+                                            @if (pUnread > 0)
+                                            {
+                                                <span class="badge badge-danger badge-pill px-2 py-1 font-weight-bold shadow-sm" title="@pUnread yeni okunmamış mesaj">
+                                                    @pUnread
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                </li>
+                            }
+                        }
+                    </ul>
+
+                    <!-- Alt Bilgilendirme Kutusu -->
+                    <div class="p-3 border-top mt-auto bg-light">
+                        <h6 class="font-weight-bold text-gray-800 small mb-2">
+                            <i class="fas fa-info-circle mr-1 text-info"></i> Stajyer Bilgisi
+                        </h6>
+                        <div class="small text-muted mb-1">
+                            <strong>Öğrenci:</strong> @ogrenciAdSoyad
+                        </div>
+                        @if (ogrenciBilgi != null)
+                        {
+                            <div class="small text-muted mb-1">
+                                <strong>Okul:</strong> @ogrenciBilgi.Okul
+                            </div>
+                            <div class="small text-muted mb-1">
+                                <strong>Bölüm:</strong> @ogrenciBilgi.Bolum
+                            </div>
+                            @if (!string.IsNullOrEmpty(ogrenciBilgi.StajKonusu))
+                            {
+                                <div class="small text-muted mb-2">
+                                    <strong>Staj Konusu:</strong> @ogrenciBilgi.StajKonusu
+                                </div>
+                            }
+                        }
+                        <button type="button" class="btn btn-outline-primary btn-block btn-sm font-weight-bold mt-2 shadow-sm" data-toggle="modal" data-target="#modalProjelerim">
+                            <i class="fas fa-tasks mr-1"></i> Görev & Projeleri Gör (@(projeler?.Count ?? 0))
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sağ Panel: Sohbet veya Boş Durum -->
+                <div class="chat-main position-relative">
+                    
+                    <!-- 1. Durum: Henüz Bir Proje Sohbeti Seçilmemişken Gözüken Boş Durum -->
+                    <div id="chatPlaceholder" class="empty-state">
+                        <div class="rounded-circle bg-white p-4 mb-3 border shadow-sm" style="width: 90px; height: 90px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-comments fa-3x text-primary"></i>
+                        </div>
+                        <h5 class="font-weight-bold text-gray-800 mb-2">Proje Mesajlaşma Ekranı</h5>
+                        <p class="text-muted mb-3" style="max-width: 480px; font-size: 14px;">
+                            Koordinatörünüz ile mesajlaşmak ve görevinize özel detayları görüşmek için sol listeden bir proje sohbeti seçiniz.
+                        </p>
+                        @if (totalUnread > 0)
+                        {
+                            <div class="alert alert-warning py-2 px-3 mb-3 d-flex align-items-center small font-weight-bold shadow-sm" id="placeholderUnreadAlert">
+                                <i class="fas fa-bell mr-2 text-warning"></i>
+                                Okunmamış @totalUnread yeni mesajınız bulunmaktadır!
+                            </div>
+                        }
+                        <button type="button" id="btnOpenChat" class="btn btn-primary px-4 py-2 font-weight-bold shadow-sm">
+                            <i class="fas fa-comment-dots mr-2"></i>İlk Proje Sohbetini Aç
+                        </button>
+                    </div>
+
+                    <!-- 2. Durum: Sohbet Açıldığında Gözüken Alan (Başlangıçta Gizli) -->
+                    <div id="chatActiveArea" style="display: none; flex-direction: column; height: 100%;">
+                        <!-- Sohbet Başlığı -->
+                        <div class="chat-header">
+                            <div class="d-flex align-items-center">
+                                <div class="student-avatar mr-3" style="width: 42px; height: 42px; font-size: 16px;">
+                                    <i class="fas fa-user-shield"></i>
+                                </div>
+                                <div>
+                                    <div class="d-flex align-items-center flex-wrap">
+                                        <h6 class="m-0 font-weight-bold text-gray-900 mr-2" style="font-size: 15px;">
+                                            Koordinatörlük &bull; <span id="headerProjectTitle">Proje Sohbeti</span>
+                                        </h6>
+                                        <small class="text-success font-weight-bold d-none d-sm-inline">
+                                            <i class="fas fa-circle mr-1" style="font-size: 8px;"></i>AE Yazılım Yönetimi
+                                        </small>
+                                    </div>
+
+                                    <!-- Durum Rozeti -->
+                                    <div class="d-flex align-items-center flex-wrap mt-1" style="gap: 5px;">
+                                        <span class="badge px-2 py-1 shadow-sm font-weight-normal" id="badgeProjeDurum" style="font-size: 11px;">
+                                            Durum
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center">
+                                <button type="button" class="btn btn-sm btn-outline-primary shadow-sm mr-2" id="btnQuickSubmitProject" data-toggle="modal" data-target="#modalProjelerim" title="Bu Projeyi Görüntüle & Teslim Et">
+                                    <i class="fas fa-upload mr-1"></i><span class="d-none d-md-inline">Görevi Teslim Et</span>
+                                </button>
+                                <button type="button" id="btnCloseChat" class="btn btn-sm btn-outline-danger shadow-sm" title="Sohbeti Kapat">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Mesaj Gövdesi -->
+                        <div class="chat-messages" id="ogrenciChatBody">
+                            <!-- JS ile doldurulacak -->
+                        </div>
+
+                        <!-- Mesaj Gönderme Çubuğu -->
+                        <div class="chat-footer">
+                            <div id="attachmentPreviewBox" class="attachment-preview-box" style="display: none;">
+                                <div class="d-flex align-items-center text-truncate mr-2">
+                                    <i id="attachmentPreviewIcon" class="fas fa-file mr-2 text-primary"></i>
+                                    <span id="attachmentPreviewName" class="font-weight-bold text-truncate text-gray-800">dosya.zip</span>
+                                    <span id="attachmentPreviewSize" class="badge badge-light border ml-2 text-muted" style="font-size: 11px;"></span>
+                                </div>
+                                <button type="button" id="btnCancelAttachment" class="btn btn-sm btn-link text-danger p-0 ml-2" title="Dosyayı Kaldır">
+                                    <i class="fas fa-times-circle fa-lg"></i>
+                                </button>
+                            </div>
+
+                            <div class="d-flex align-items-center w-100">
+                                <input type="file" id="fileAttachmentInput" style="display: none;" />
+                                <button type="button" id="btnAttachFile" class="btn btn-light border mr-2 shadow-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; flex-shrink: 0;" title="Dosya veya Proje Ekle (.zip, .rar, .pdf, kod vb.)">
+                                    <i class="fas fa-paperclip text-secondary"></i>
+                                </button>
+                                <textarea id="txtOgrenciMesaj" class="form-control chat-input" rows="1" placeholder="Bu proje hakkında mesajınızı yazın..."></textarea>
+                                <button type="button" id="btnOgrenciGonder" class="btn-send shadow-sm ml-2" title="Gönder">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal: Projelerim & Görevlerim -->
+    <div class="modal fade" id="modalProjelerim" tabindex="-1" role="dialog" aria-labelledby="modalProjelerimLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title font-weight-bold" id="modalProjelerimLabel">
+                        <i class="fas fa-project-diagram mr-2"></i>Staj Projelerim & Görevlerim
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body bg-light" style="max-height: 75vh; overflow-y: auto;">
+                    @if (projeler != null && projeler.Any())
+                    {
+                        foreach (var p in projeler)
+                        {
+                            <div class="card shadow-sm border-0 mb-3" id="projeCard-@p.StajyerProjeId">
+                                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="m-0 font-weight-bold text-primary">
+                                            <i class="fas fa-layer-group mr-1"></i>@p.ProjeBaslik
+                                        </h6>
+                                        <small class="text-muted">
+                                            <i class="far fa-calendar-alt mr-1 text-info"></i>Atanma: @p.AtanmaTarihi.ToString("dd.MM.yyyy")
+                                            &bull; <i class="far fa-calendar-check mr-1 text-danger"></i>Teslim Bitiş: @p.BitisTarihi.ToString("dd.MM.yyyy")
+                                        </small>
+                                    </div>
+                                    <span class="badge @p.DurumRozet px-3 py-2 font-weight-bold" id="badgeDurum-@p.StajyerProjeId">
+                                        @p.DurumMetni
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="font-weight-bold small text-muted text-uppercase mb-1">Proje Açıklaması & Görev:</label>
+                                        <div class="p-2 bg-light rounded text-dark small" style="white-space: pre-wrap;">@p.ProjeAciklama</div>
+                                    </div>
+
+                                    @if (p.Puan.HasValue || !string.IsNullOrEmpty(p.YoneticiNotu))
+                                    {
+                                        <div class="alert alert-warning py-2 mb-3">
+                                            <div class="font-weight-bold text-dark">
+                                                <i class="fas fa-award mr-1 text-warning"></i>Değerlendirme Notu:
+                                                @(p.Puan.HasValue ? $"{p.Puan} / 100" : "Puan Belirtilmedi")
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(p.YoneticiNotu))
+                                            {
+                                                <div class="small text-muted mt-1"><strong>Yönetici Yorumu:</strong> @p.YoneticiNotu</div>
+                                            }
+                                        </div>
+                                    }
+
+                                    <!-- Teslim Bölümü -->
+                                    <div class="border-top pt-3">
+                                        @if (p.Durum == 3)
+                                        {
+                                            <div class="alert alert-info py-2 mb-0 small">
+                                                <i class="fas fa-check-circle mr-1"></i><strong>Projenizi Teslim Ettiniz:</strong> Yönetici incelemesi ve değerlendirmesi beklenmektedir.
+                                                @if (!string.IsNullOrEmpty(p.TeslimAciklamasi))
+                                                {
+                                                    <div class="mt-1 font-italic">"@p.TeslimAciklamasi"</div>
+                                                }
+                                                @if (!string.IsNullOrEmpty(p.DosyaYolu))
+                                                {
+                                                    <div class="mt-1"><a href="@p.DosyaYolu" target="_blank" class="text-primary font-weight-bold"><i class="fas fa-link mr-1"></i>Teslim Bağlantısı</a></div>
+                                                }
+                                            </div>
+                                        }
+                                        else if (p.Durum == 4)
+                                        {
+                                            <div class="alert alert-success py-2 mb-0 small">
+                                                <i class="fas fa-star mr-1"></i><strong>Tebrikler!</strong> Projeniz yönetici tarafından başarıyla onaylandı.
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <form class="form-submit-project" data-id="@p.StajyerProjeId">
+                                                <h6 class="font-weight-bold small text-gray-800 mb-2">
+                                                    <i class="fas fa-upload mr-1 text-primary"></i>Projeyi Teslim Et:
+                                                </h6>
+                                                <div class="form-group mb-2">
+                                                    <textarea class="form-control form-control-sm submit-desc" rows="2" placeholder="Teslim notunuz, geliştirilen özellikler, çalıştırma notları..." required>@p.TeslimAciklamasi</textarea>
+                                                </div>
+                                                <div class="form-group mb-2">
+                                                    <input type="text" class="form-control form-control-sm submit-url" placeholder="GitHub Repo Linki veya Dosya/Drive Linki (opsiyonel)" value="@p.DosyaYolu" />
+                                                </div>
+                                                <div class="text-right">
+                                                    <button type="submit" class="btn btn-success btn-sm font-weight-bold">
+                                                        <i class="fas fa-paper-plane mr-1"></i> Projeyi Teslim Et
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <i class="fas fa-tasks fa-3x mb-2 d-block text-gray-300"></i>
+                            Henüz size atanmış bir proje görevi bulunmamaktadır.
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white py-3 border-top mt-auto text-center text-muted">
+        <div class="container">
+            <small>Telif Hakkı &copy; AE Yazılım Staj Başvuru Sistemi 2026 - Tüm Hakları Saklıdır.</small>
+        </div>
+    </footer>
+
+    <!-- Bootstrap Core JS & SB Admin 2 Scripts -->
+    <script src="~/startbootstrap-sb-admin-2-gh-pages/vendor/jquery/jquery.min.js"></script>
+    <script src="~/startbootstrap-sb-admin-2-gh-pages/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/startbootstrap-sb-admin-2-gh-pages/vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="~/startbootstrap-sb-admin-2-gh-pages/js/sb-admin-2.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            var $placeholder = $('#chatPlaceholder');
+            var $activeChat = $('#chatActiveArea');
+            var $chatBody = $('#ogrenciChatBody');
+            var $input = $('#txtOgrenciMesaj');
+            var $btnSend = $('#btnOgrenciGonder');
+            var currentActiveProjeId = null;
+            var currentStajyerProjeId = 0;
+            var isChatOpen = false;
+            var pollInterval = null;
+            var apiBaseUrl = '@apiBaseUrl';
+            var selectedFile = null;
+
+            function formatBytes(bytes) {
+                if (!bytes || bytes === 0) return '0 B';
+                var k = 1024;
+                var sizes = ['B', 'KB', 'MB', 'GB'];
+                var i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+            }
+
+            function getFileIcon(fileName) {
+                if (!fileName) return 'fas fa-file text-secondary';
+                var ext = fileName.split('.').pop().toLowerCase();
+                if (['zip', 'rar', '7z', 'tar', 'gz'].indexOf(ext) > -1) return 'fas fa-file-archive text-warning';
+                if (['pdf'].indexOf(ext) > -1) return 'fas fa-file-pdf text-danger';
+                if (['doc', 'docx'].indexOf(ext) > -1) return 'fas fa-file-word text-primary';
+                if (['xls', 'xlsx', 'csv'].indexOf(ext) > -1) return 'fas fa-file-excel text-success';
+                if (['ppt', 'pptx'].indexOf(ext) > -1) return 'fas fa-file-powerpoint text-danger';
+                if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].indexOf(ext) > -1) return 'fas fa-file-image text-info';
+                if (['cs', 'py', 'js', 'ts', 'html', 'css', 'json', 'sql', 'xml'].indexOf(ext) > -1) return 'fas fa-file-code text-dark';
+                return 'fas fa-file-alt text-secondary';
+            }
+
+            function isImageFile(fileName) {
+                if (!fileName) return false;
+                var ext = fileName.split('.').pop().toLowerCase();
+                return ['png', 'jpg', 'jpeg', 'gif', 'webp'].indexOf(ext) > -1;
+            }
+
+            function buildAttachmentHtml(fileUrl, fileName) {
+                if (!fileUrl) return '';
+                var fullUrl = fileUrl.startsWith('http') ? fileUrl : (apiBaseUrl + fileUrl);
+                var safeName = $('<div>').text(fileName || 'Ekli Dosya').html();
+                var iconClass = getFileIcon(fileName);
+
+                var imgHtml = '';
+                if (isImageFile(fileName)) {
+                    imgHtml = `<div><a href="` + fullUrl + `" target="_blank"><img src="` + fullUrl + `" class="chat-img-thumb shadow-sm" alt="` + safeName + `" /></a></div>`;
+                }
+
+                return imgHtml + `
+                    <a href="` + fullUrl + `" target="_blank" download class="chat-attachment-card shadow-sm">
+                        <i class="` + iconClass + ` chat-attachment-icon"></i>
+                        <div class="chat-attachment-info">
+                            <span class="chat-attachment-name">` + safeName + `</span>
+                            <span class="chat-attachment-meta small"><i class="fas fa-download mr-1"></i>İndirmek için tıklayınız</span>
+                        </div>
+                    </a>
+                `;
+            }
+
+            function scrollBottom() {
+                if ($chatBody.length) {
+                    $chatBody.scrollTop($chatBody[0].scrollHeight);
+                }
+            }
+
+            function renderMessages(messages) {
+                $chatBody.empty();
+                if (!messages || messages.length === 0) {
+                    var prjTitle = $('#headerProjectTitle').text();
+                    var emptyHtml = `
+                        <div class="text-center my-auto py-5 text-muted empty-state-box">
+                            <div class="rounded-circle bg-white p-3 d-inline-flex mb-3 shadow-sm border">
+                                <i class="fas fa-comments fa-3x text-primary"></i>
+                            </div>
+                            <h6 class="font-weight-bold text-gray-800">` + $('<div>').text(prjTitle).html() + `</h6>
+                            <p class="small text-muted mb-0" style="max-width: 480px; margin: 0 auto;">
+                                Bu proje göreviyle ilgili soru, teslim veya güncellemelerinizi koordinatörünüze buradan yazabilirsiniz.
+                            </p>
+                        </div>`;
+                    $chatBody.append(emptyHtml);
+                    return;
+                }
+
+                messages.forEach(function (m) {
+                    var isOut = m.gonderenRol === 'Ogrenci' || m.GonderenRol === 'Ogrenci';
+                    var sender = isOut ? 'Siz' : 'Staj Koordinatörü (Admin)';
+                    var content = m.icerik || m.Icerik || '';
+                    var fileUrl = m.dosyaYolu || m.DosyaYolu;
+                    var fileName = m.dosyaAdi || m.DosyaAdi;
+                    var d = new Date(m.createdDate || m.CreatedDate);
+                    var time = ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+                    var isRead = m.okunduMu || m.OkunduMu;
+                    var attachHtml = buildAttachmentHtml(fileUrl, fileName);
+
+                    var b = `
+                        <div class="bubble ` + (isOut ? 'bubble-out' : 'bubble-in') + `" data-id="` + (m.id || m.Id) + `">
+                            <div class="bubble-sender">` + sender + `</div>
+                            ` + (content ? `<div class="bubble-content" style="white-space: pre-wrap;">` + $('<div>').text(content).html() + `</div>` : ``) + `
+                            ` + attachHtml + `
+                            <div class="bubble-time">
+                                ` + time + (isOut ? ` <i class="fas fa-check-double ` + (isRead ? `text-primary` : `text-muted`) + `" style="font-size: 10px;" title="` + (isRead ? `Yönetici Okudu` : `İletildi`) + `"></i>` : ``) + `
+                            </div>
+                        </div>`;
+                    $chatBody.append(b);
+                });
+
+                scrollBottom();
+            }
+
+            $('#btnAttachFile').on('click', function () {
+                $('#fileAttachmentInput').click();
+            });
+
+            $('#fileAttachmentInput').on('change', function () {
+                if (this.files && this.files[0]) {
+                    var f = this.files[0];
+                    if (f.size > 50 * 1024 * 1024) {
+                        alert('Dosya boyutu 50MB\'dan büyük olamaz.');
+                        $(this).val('');
+                        return;
+                    }
+                    selectedFile = f;
+                    $('#attachmentPreviewName').text(f.name);
+                    $('#attachmentPreviewSize').text(formatBytes(f.size));
+                    $('#attachmentPreviewIcon').removeClass().addClass(getFileIcon(f.name) + ' mr-2');
+                    $('#attachmentPreviewBox').show();
+                }
+            });
+
+            $('#btnCancelAttachment').on('click', function () {
+                selectedFile = null;
+                $('#fileAttachmentInput').val('');
+                $('#attachmentPreviewBox').hide();
+            });
+
+            function selectProjectConversation($elem) {
+                if (!$elem || !$elem.length) return;
+
+                $('.chat-conversation-item').removeClass('active');
+                $elem.addClass('active');
+
+                var projeId = parseInt($elem.data('proje-id'));
+                var projeBaslik = $elem.data('proje-baslik') || 'Proje Sohbeti';
+                var durumMetni = $elem.data('durum-metni') || '';
+                var durumRozet = $elem.data('durum-rozet') || 'badge-secondary';
+                var stajyerProjeId = parseInt($elem.data('stajyer-proje-id')) || 0;
+
+                currentActiveProjeId = projeId;
+                currentStajyerProjeId = stajyerProjeId;
+                isChatOpen = true;
+
+                // Okunmamış rozetini temizle
+                $elem.find('.unread-badge-container').empty();
+                $('#placeholderUnreadAlert').remove();
+
+                // Üst başlık güncelle
+                $('#headerProjectTitle').text(projeBaslik);
+                $('#badgeProjeDurum').show().removeClass().addClass('badge ' + durumRozet).text(durumMetni);
+                $('#btnQuickSubmitProject').show();
+
+                $placeholder.hide();
+                $activeChat.css('display', 'flex');
+
+                // Yükleniyor animasyonu
+                $chatBody.html(`
+                    <div class="text-center my-auto py-5 text-muted">
+                        <div class="spinner-border text-primary mb-2" role="status"></div>
+                        <div class="small">Mesajlar yükleniyor...</div>
+                    </div>
+                `);
+
+                // Mesajları çek
+                var fetchUrl = '/Ogrenci/GetMessages?projeId=' + projeId;
+                $.ajax({
+                    url: fetchUrl,
+                    type: 'GET',
+                    success: function (messages) {
+                        renderMessages(messages);
+                        $input.focus();
+                    },
+                    error: function () {
+                        $chatBody.html('<div class="text-center text-danger my-auto py-4">Mesajlar yüklenirken hata oluştu.</div>');
+                    }
+                });
+
+                // Polling başlat / yeniden başlat
+                if (pollInterval) clearInterval(pollInterval);
+                pollInterval = setInterval(function () {
+                    if (!isChatOpen || currentActiveProjeId === null) return;
+                    var pollUrl = '/Ogrenci/GetMessages?projeId=' + currentActiveProjeId;
+                    $.ajax({
+                        url: pollUrl,
+                        type: 'GET',
+                        success: function (messages) {
+                            if (!messages || !isChatOpen) return;
+                            var currentCount = $chatBody.find('.bubble').length;
+                            if (messages.length > currentCount) {
+                                renderMessages(messages);
+                            }
+                        }
+                    });
+                }, 3500);
+            }
+
+            // Tıklama olayları
+            $(document).on('click', '.chat-conversation-item', function () {
+                selectProjectConversation($(this));
+            });
+
+            $('#btnOpenChat').on('click', function () {
+                var $firstItem = $('.chat-conversation-item').first();
+                if ($firstItem.length) {
+                    selectProjectConversation($firstItem);
+                }
+            });
+
+            $('#btnCloseChat').on('click', function () {
+                if (!isChatOpen) return;
+                isChatOpen = false;
+                currentActiveProjeId = null;
+
+                if (pollInterval) {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                }
+
+                $activeChat.hide();
+                $placeholder.show();
+                $('.chat-conversation-item').removeClass('active');
+            });
+
+            // Proje Arama Filtresi
+            $('#searchProjectInput').on('keyup', function () {
+                var val = $(this).val().trim().toLocaleLowerCase('tr-TR');
+                $('.conversation-item-wrapper').each(function () {
+                    var searchData = ($(this).find('.chat-conversation-item').data('search') || '').toString().toLocaleLowerCase('tr-TR');
+                    if (searchData.indexOf(val) > -1) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+
+            // Mesaj Gönderme
+            async function send() {
+                var text = $input.val().trim();
+                if ((!text && !selectedFile) || currentActiveProjeId === null) return;
+
+                $btnSend.prop('disabled', true);
+                var currentFile = selectedFile;
+                var uploadedFilePath = null;
+                var uploadedFileName = null;
+
+                if (currentFile) {
+                    $btnSend.html('<i class="fas fa-spinner fa-spin"></i>');
+                    var formData = new FormData();
+                    formData.append('file', currentFile);
+
+                    try {
+                        var uploadRes = await $.ajax({
+                            url: '/Ogrenci/UploadMesajDosya',
+                            type: 'POST',
+                            data: formData,
+                            processData: false,
+                            contentType: false
+                        });
+
+                        if (uploadRes && uploadRes.success) {
+                            uploadedFilePath = uploadRes.filePath;
+                            uploadedFileName = uploadRes.fileName || currentFile.name;
+                        } else {
+                            alert(uploadRes.message || 'Dosya yüklenemedi.');
+                            $btnSend.prop('disabled', false).html('<i class="fas fa-paper-plane"></i>');
+                            return;
+                        }
+                    } catch (err) {
+                        alert('Dosya sunucuya yüklenirken bir hata oluştu.');
+                        $btnSend.prop('disabled', false).html('<i class="fas fa-paper-plane"></i>');
+                        return;
+                    }
+                }
+
+                $input.val('');
+                selectedFile = null;
+                $('#fileAttachmentInput').val('');
+                $('#attachmentPreviewBox').hide();
+                $('.empty-state-box').remove();
+
+                var now = new Date();
+                var timeStr = ("0" + now.getHours()).slice(-2) + ":" + ("0" + now.getMinutes()).slice(-2);
+                var attachHtml = buildAttachmentHtml(uploadedFilePath, uploadedFileName);
+
+                var html = `
+                    <div class="bubble bubble-out">
+                        <div class="bubble-sender">Siz</div>
+                        ` + (text ? `<div class="bubble-content" style="white-space: pre-wrap;">` + $('<div>').text(text).html() + `</div>` : ``) + `
+                        ` + attachHtml + `
+                        <div class="bubble-time">` + timeStr + ` <i class="fas fa-check text-muted" style="font-size: 10px;"></i></div>
+                    </div>`;
+                $chatBody.append(html);
+                scrollBottom();
+
+                // Aktif karttaki son mesaj saatini güncelle
+                $('.chat-conversation-item.active').find('.item-msg-time').text(timeStr);
+
+                var payload = {
+                    Icerik: text,
+                    ProjeId: currentActiveProjeId,
+                    DosyaYolu: uploadedFilePath,
+                    DosyaAdi: uploadedFileName
+                };
+
+                $.ajax({
+                    url: '/Ogrenci/SendMessage',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload),
+                    success: function (res) {
+                        $btnSend.prop('disabled', false).html('<i class="fas fa-paper-plane"></i>');
+                        $input.focus();
+                        if (!res.success) {
+                            alert(res.message || 'Mesaj iletilemedi.');
+                        }
+                    },
+                    error: function () {
+                        $btnSend.prop('disabled', false).html('<i class="fas fa-paper-plane"></i>');
+                        alert('Sunucu ile bağlantı hatası oluştu.');
+                    }
+                });
+            }
+
+            $btnSend.on('click', send);
+
+            $input.on('keydown', function (e) {
+                if (e.keyCode === 13 && !e.shiftKey) {
+                    e.preventDefault();
+                    send();
+                }
+            });
+
+            // Otomatik ilk sohbeti aç (varsa initialProjeId veya ilk konuşma)
+            var initProjeId = @(initialProjeId.HasValue ? initialProjeId.Value.ToString() : "null");
+            if (initProjeId !== null) {
+                var $targetItem = $('.chat-conversation-item[data-proje-id="' + initProjeId + '"]');
+                if ($targetItem.length) {
+                    selectProjectConversation($targetItem);
+                }
+            }
+
+            // Görevi Teslim Et butonuna basıldığında modal içindeki ilgili karta odaklanma
+            $('#btnQuickSubmitProject').on('click', function () {
+                if (currentStajyerProjeId > 0) {
+                    setTimeout(function () {
+                        var $card = $('#projeCard-' + currentStajyerProjeId);
+                        if ($card.length) {
+                            $card[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            $card.addClass('border-primary shadow');
+                            setTimeout(function () { $card.removeClass('border-primary shadow'); }, 2500);
+                        }
+                    }, 300);
+                }
+            });
+
+            // Proje Teslim Form Gönderimi
+            $('.form-submit-project').on('submit', function (e) {
+                e.preventDefault();
+                var form = $(this);
+                var projeId = form.data('id');
+                var desc = form.find('.submit-desc').val().trim();
+                var url = form.find('.submit-url').val().trim();
+                var btn = form.find('button[type="submit"]');
+
+                if (!desc) {
+                    alert('Lütfen teslim açıklamanızı yazınız.');
+                    return;
+                }
+
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Gönderiliyor...');
+
+                $.ajax({
+                    url: '/Ogrenci/SubmitProject',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        StajyerProjeId: projeId,
+                        TeslimAciklamasi: desc,
+                        DosyaYolu: url
+                    }),
+                    success: function (res) {
+                        if (res.success) {
+                            alert('Projeniz başarıyla teslim edildi!');
+                            location.reload();
+                        } else {
+                            btn.prop('disabled', false).html('<i class="fas fa-paper-plane mr-1"></i> Projeyi Teslim Et');
+                            alert(res.message || 'Proje teslimi başarısız oldu.');
+                        }
+                    },
+                    error: function () {
+                        btn.prop('disabled', false).html('<i class="fas fa-paper-plane mr-1"></i> Projeyi Teslim Et');
+                        alert('Sunucu hatası oluştu.');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,130 @@
+﻿@model WebUI.Dtos.AuthDtos.UserLoginDto
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="AE Yazılım Staj Sistemi Giriş">
+    <meta name="author" content="AE Yazılım">
+
+    <title>Giriş Yap - AE Yazılım Staj Başvuru Sistemi</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="~/startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="~/startbootstrap-sb-admin-2-gh-pages/css/sb-admin-2.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gradient-primary" style="min-height: 100vh; display: flex; align-items: center;">
+
+    <div class="container">
+
+        <!-- Outer Row -->
+        <div class="row justify-content-center">
+
+            <div class="col-xl-10 col-lg-12 col-md-9">
+
+                <div class="card o-hidden border-0 shadow-lg my-5">
+                    <div class="card-body p-0">
+                        <!-- Nested Row within Card Body -->
+                        <div class="row">
+                            <div class="col-lg-6 d-none d-lg-flex bg-login-image align-items-center justify-content-center flex-column p-5 text-white" 
+                                 style="background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);">
+                                <i class="fas fa-graduation-cap fa-5x mb-4 text-white"></i>
+                                <h3 class="font-weight-bold text-center">AE Yazılım Staj Sistemi</h3>
+                                <p class="text-center mt-2 text-white-50">Staj başvurularını yönetin, durumlarını anlık takip edin ve değerlendirin.</p>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="p-5">
+                                    <div class="text-center">
+                                        <h1 class="h4 text-gray-900 mb-2 font-weight-bold">Tekrar Hoş Geldiniz!</h1>
+                                        <p class="text-muted mb-4 small">Lütfen hesabınıza giriş yapınız.</p>
+                                    </div>
+
+                                    @if (TempData["SuccessMessage"] != null)
+                                    {
+                                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                            <i class="fas fa-check-circle mr-1"></i> @TempData["SuccessMessage"]
+                                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                    }
+
+                                    @if (TempData["ErrorMessage"] != null)
+                                    {
+                                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                            <i class="fas fa-exclamation-triangle mr-1"></i> @TempData["ErrorMessage"]
+                                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                    }
+
+                                    @if (ViewBag.Error != null)
+                                    {
+                                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                            <i class="fas fa-exclamation-circle mr-1"></i> @ViewBag.Error
+                                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                    }
+
+                                    <form class="user" method="post" action="/Login/Index">
+                                        <div class="form-group">
+                                            <input type="email" class="form-control form-control-user" asp-for="Email" placeholder="E-Posta Adresiniz..." required>
+                                            <span asp-validation-for="Email" class="text-danger small pl-3"></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="password" class="form-control form-control-user" asp-for="Password" minlength="6" oninvalid="this.setCustomValidity('Şifre en az 6 karakter olmalıdır.')" oninput="this.setCustomValidity('')" placeholder="Şifreniz" required>
+                                            <span asp-validation-for="Password" class="text-danger small pl-3"></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="custom-control custom-checkbox small">
+                                                <input type="checkbox" class="custom-control-input" id="customCheck">
+                                                <label class="custom-control-label" for="customCheck">Beni Hatırla</label>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary btn-user btn-block font-weight-bold shadow-sm">
+                                            <i class="fas fa-sign-in-alt mr-1"></i> Giriş Yap
+                                        </button>
+                                    </form>
+
+                                    <hr>
+
+                                    <div class="text-center">
+                                        <a class="small text-muted" href="/">
+                                            <i class="fas fa-arrow-left mr-1"></i> Başvuru Formuna Dön
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="~/startbootstrap-sb-admin-2-gh-pages/vendor/jquery/jquery.min.js"></script>
+    <script src="~/startbootstrap-sb-admin-2-gh-pages/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/startbootstrap-sb-admin-2-gh-pages/vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="~/startbootstrap-sb-admin-2-gh-pages/js/sb-admin-2.min.js"></script>
+
+</body>
+
+</html>

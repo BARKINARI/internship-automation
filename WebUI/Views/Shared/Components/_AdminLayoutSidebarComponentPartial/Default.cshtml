@@ -1,0 +1,153 @@
+﻿@using WebUI.Controllers
+@using WebUI.Helpers
+@{
+    string? token = Context.Request.Cookies["access_token"];
+
+    bool canViewBasvurular = UserPermissionHelper.CanAccessBasvurular(token);
+    bool canViewYeniBasvuru = UserPermissionHelper.CanAccessYeniBasvuru(token);
+    bool canViewStajBolumu = canViewBasvurular || canViewYeniBasvuru;
+
+    bool canViewProjeYonetimi = UserPermissionHelper.CanAccessProjeYonetimi(token);
+    bool canViewProjeTakip = UserPermissionHelper.CanAccessProjeTakip(token);
+    bool canViewProjeBolumu = canViewProjeYonetimi || canViewProjeTakip;
+
+    bool canViewMesajlar = UserPermissionHelper.CanAccessMesajlar(token);
+    bool canViewKullaniciRoller = UserPermissionHelper.CanAccessKullaniciRol(token);
+
+    string defaultDashboardUrl = UserPermissionHelper.GetDefaultLandingUrl(token);
+}
+
+<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+    <!-- Sidebar - Brand -->
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="@defaultDashboardUrl">
+        <div class="sidebar-brand-icon rotate-n-15">
+            <i class="fas fa-graduation-cap"></i>
+        </div>
+        <div class="sidebar-brand-text mx-3">Staj Sistemi <sup>AE</sup></div>
+    </a>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
+
+    <!-- Nav Item - Dashboard -->
+    <li class="nav-item active">
+        <a class="nav-link" href="@defaultDashboardUrl">
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span>Yönetim Paneli</span>
+        </a>
+    </li>
+
+    @if (canViewStajBolumu)
+    {
+        <!-- Divider -->
+        <hr class="sidebar-divider">
+
+        <!-- Heading -->
+        <div class="sidebar-heading">
+            STAJ BAŞVURU İŞLEMLERİ
+        </div>
+
+        @if (canViewBasvurular)
+        {
+            <!-- Nav Item - Staj Başvuruları -->
+            <li class="nav-item">
+                <a class="nav-link" href="/Admin/AdminStajBasvuru/StajBasvuruList">
+                    <i class="fas fa-fw fa-clipboard-list"></i>
+                    <span>Staj Başvuruları</span>
+                </a>
+            </li>
+        }
+
+        @if (canViewYeniBasvuru)
+        {
+            <!-- Nav Item - Yeni Başvuru Yap -->
+            <li class="nav-item">
+                <a class="nav-link" href="/Admin/AdminStajBasvuru/CreateStajBasvuru">
+                    <i class="fas fa-fw fa-plus-circle"></i>
+                    <span>Yeni Başvuru Yap</span>
+                </a>
+            </li>
+        }
+    }
+
+    @if (canViewProjeBolumu)
+    {
+        <!-- Divider -->
+        <hr class="sidebar-divider">
+
+        <!-- Heading -->
+        <div class="sidebar-heading">
+            PROJE VE GÖREV İŞLEMLERİ
+        </div>
+
+        @if (canViewProjeYonetimi)
+        {
+            <!-- Nav Item - Proje Yönetimi -->
+            <li class="nav-item">
+                <a class="nav-link" href="/Admin/AdminProje/Index">
+                    <i class="fas fa-fw fa-project-diagram"></i>
+                    <span>Proje Yönetimi</span>
+                </a>
+            </li>
+        }
+
+        @if (canViewProjeTakip)
+        {
+            <!-- Nav Item - Proje Takip & Notlandırma -->
+            <li class="nav-item">
+                <a class="nav-link" href="/Admin/AdminProje/StajyerProjeleri">
+                    <i class="fas fa-fw fa-award"></i>
+                    <span>Proje Takip & Notlandırma</span>
+                </a>
+            </li>
+        }
+    }
+
+    @if (canViewMesajlar)
+    {
+        <!-- Divider -->
+        <hr class="sidebar-divider">
+
+        <!-- Heading -->
+        <div class="sidebar-heading">
+            İLETİŞİM
+        </div>
+
+        <!-- Nav Item - Öğrenci Mesajları -->
+        <li class="nav-item">
+            <a class="nav-link" href="/Admin/AdminMesaj">
+                <i class="fas fa-fw fa-comments"></i>
+                <span>Öğrenci Mesajları</span>
+            </a>
+        </li>
+    }
+
+    @if (canViewKullaniciRoller)
+    {
+        <!-- Divider -->
+        <hr class="sidebar-divider">
+
+        <!-- Heading -->
+        <div class="sidebar-heading">
+            SİSTEM & YETKİLENDİRME
+        </div>
+
+        <!-- Nav Item - Kullanıcı & Rol Atama -->
+        <li class="nav-item">
+            <a class="nav-link" href="/Admin/AdminKullaniciRol/Index">
+                <i class="fas fa-fw fa-users-cog"></i>
+                <span>Kullanıcı & Rol Atama</span>
+            </a>
+        </li>
+    }
+
+    <!-- Divider -->
+    <hr class="sidebar-divider d-none d-md-block">
+
+    <!-- Sidebar Toggler (Sidebar) -->
+    <div class="text-center d-none d-md-inline">
+        <button class="rounded-circle border-0" id="sidebarToggle"></button>
+    </div>
+
+</ul>

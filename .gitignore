@@ -1,0 +1,46 @@
+## Visual Studio / .NET Core
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.pidb
+*.booproj
+*.svclog
+
+## Build & Test Results
+TestResults/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa]rms/
+[Aa]rm64/
+build/
+*.nupkg
+
+## User Uploaded Files (Personal Data / CVs / Privacy)
+**/wwwroot/uploads/*
+!**/wwwroot/uploads/.gitkeep
+**/wwwroot/uploads/cvs/*
+!**/wwwroot/uploads/cvs/.gitkeep
+**/wwwroot/uploads/mesajlar/*
+!**/wwwroot/uploads/mesajlar/.gitkeep
+
+## Application Logs
+**/logs/*
+!**/logs/.gitkeep
+*.log
+
+## Environment Specific / Production Secrets
+**/appsettings.Production.json
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/secrets.json
+
+## OS Generated
+.DS_Store
+Thumbs.db
+desktop.ini

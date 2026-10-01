@@ -1,0 +1,271 @@
+﻿@model List<WebUI.Dtos.ProjeDtos.ResultStajyerProjeDto>
+
+@{
+    ViewData["Title"] = "Stajyer Proje Atamaları";
+    Layout = "~/Views/AdminLayout/Index.cshtml";
+    int count = 0;
+    var projeler = ViewBag.Projeler as List<WebUI.Dtos.ProjeDtos.ResultProjeDto> ?? new List<WebUI.Dtos.ProjeDtos.ResultProjeDto>();
+    var ogrenciler = ViewBag.KabulEdilenOgrenciler as List<WebUI.Dtos.StajBasvuruDtos.ResultStajBasvuruDto> ?? new List<WebUI.Dtos.StajBasvuruDtos.ResultStajBasvuruDto>();
+    int? seciliProjeId = ViewBag.SeciliProjeId;
+    int? seciliStajBasvuruId = ViewBag.SeciliStajBasvuruId;
+}
+
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-award mr-2 text-primary"></i>Stajyer Proje Takip & Değerlendirme</h1>
+        <small class="text-muted">Öğrencilere atanan projeleri, teslim durumlarını, teslim edilen bağlantıları inceleyin ve notlandırın.</small>
+    </div>
+    <div>
+        <a href="/Admin/AdminProje/Index" class="btn btn-sm btn-outline-primary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm mr-1"></i> Projeler Listesi
+        </a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-check-circle mr-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-exclamation-triangle mr-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+<!-- Filtreleme Kartı -->
+<div class="card shadow mb-4">
+    <div class="card-body py-3">
+        <form method="get" action="/Admin/AdminProje/StajyerProjeleri" class="form-row align-items-end">
+            <div class="col-md-5 my-1">
+                <label class="small font-weight-bold text-gray-700 mb-1">Projeye Göre Filtrele:</label>
+                <select name="projeId" class="form-control form-control-sm">
+                    <option value="">-- Tüm Projeler --</option>
+                    @foreach (var p in projeler)
+                    {
+                        <option value="@p.Id" selected="@(seciliProjeId == p.Id ? "selected" : null)">@p.Baslik</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-5 my-1">
+                <label class="small font-weight-bold text-gray-700 mb-1">Stajyere Göre Filtrele:</label>
+                <select name="stajBasvuruId" class="form-control form-control-sm">
+                    <option value="">-- Tüm Stajyerler --</option>
+                    @foreach (var o in ogrenciler)
+                    {
+                        <option value="@o.Id" selected="@(seciliStajBasvuruId == o.Id ? "selected" : null)">@o.Ad @o.Soyad (@o.Okul)</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2 my-1">
+                <button type="submit" class="btn btn-primary btn-sm btn-block">
+                    <i class="fas fa-filter mr-1"></i> Filtrele
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Atamalar Listesi -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-list-check mr-2"></i>Proje Atamaları</h6>
+        <span class="badge badge-primary badge-pill font-weight-normal px-2 py-1">Toplam: @(Model?.Count ?? 0) Atama</span>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                <thead class="thead-light">
+                    <tr>
+                        <th style="width: 35px;" class="text-center">#</th>
+                        <th>Stajyer Bilgisi</th>
+                        <th>Proje</th>
+                        <th style="width: 145px;">Tarihler</th>
+                        <th style="width: 110px;" class="text-center">Durum</th>
+                        <th>Teslim Detayı & Bağlantı</th>
+                        <th style="width: 130px;" class="text-center">Not & Puan</th>
+                        <th style="width: 110px;" class="text-center">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            count++;
+                            <tr>
+                                <td class="text-center font-weight-bold align-middle">@count</td>
+                                <td class="align-middle">
+                                    <div class="font-weight-bold text-gray-900">
+                                        <i class="fas fa-user-graduate text-primary mr-1"></i>@item.StajyerAdSoyad
+                                    </div>
+                                    <small class="text-muted"><i class="fas fa-envelope mr-1"></i>@item.StajyerEposta</small>
+                                </td>
+                                <td class="align-middle">
+                                    <div class="font-weight-bold text-dark">@item.ProjeBaslik</div>
+                                    <small class="text-muted d-block text-truncate" style="max-width: 250px;">@item.ProjeAciklama</small>
+                                </td>
+                                <td class="align-middle small">
+                                    <div><i class="far fa-calendar-plus text-info mr-1"></i>Atanma: @item.AtanmaTarihi.ToString("dd.MM.yyyy")</div>
+                                    @if (item.TeslimTarihi.HasValue)
+                                    {
+                                        <div class="mt-1 text-success font-weight-bold">
+                                            <i class="far fa-calendar-check mr-1"></i>Teslim: @item.TeslimTarihi.Value.ToString("dd.MM.yyyy HH:mm")
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="mt-1 text-muted"><i class="far fa-clock mr-1"></i>Teslim bekleniyor</div>
+                                    }
+                                </td>
+                                <td class="text-center align-middle">
+                                    <span class="badge @item.DurumRozet px-2 py-1 font-weight-bold">
+                                        @item.DurumMetni
+                                    </span>
+                                </td>
+                                <td class="align-middle small">
+                                    @if (!string.IsNullOrEmpty(item.TeslimAciklamasi))
+                                    {
+                                        <div class="text-dark font-italic mb-1">"@item.TeslimAciklamasi"</div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.DosyaYolu))
+                                    {
+                                        <a href="@item.DosyaYolu" target="_blank" class="btn btn-sm btn-outline-info py-0 px-2 mt-1">
+                                            <i class="fas fa-external-link-alt mr-1"></i>Teslim Linki / Dosya
+                                        </a>
+                                    }
+                                    else if (string.IsNullOrEmpty(item.TeslimAciklamasi))
+                                    {
+                                        <span class="text-muted font-italic">Henüz teslim yapılmadı.</span>
+                                    }
+                                </td>
+                                <td class="text-center align-middle">
+                                    @if (item.Puan.HasValue)
+                                    {
+                                        <div class="h5 mb-0 font-weight-bold @(item.Puan >= 70 ? "text-success" : "text-warning")">
+                                            @item.Puan / 100
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-light border text-muted">Not Verilmedi</span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.YoneticiNotu))
+                                    {
+                                        <small class="d-block text-muted text-truncate mt-1" title="@item.YoneticiNotu" style="max-width: 120px;">
+                                            @item.YoneticiNotu
+                                        </small>
+                                    }
+                                </td>
+                                <td class="text-center align-middle">
+                                    <button type="button" class="btn btn-sm btn-primary btn-eval"
+                                            data-id="@item.StajyerProjeId"
+                                            data-ogrenci="@item.StajyerAdSoyad"
+                                            data-proje="@item.ProjeBaslik"
+                                            data-durum="@item.Durum"
+                                            data-puan="@(item.Puan?.ToString() ?? "")"
+                                            data-not="@(item.YoneticiNotu ?? "")"
+                                            title="Değerlendir / Not Ver">
+                                        <i class="fas fa-edit mr-1"></i>Değerlendir
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                <i class="fas fa-inbox fa-3x mb-3 d-block text-gray-300"></i>
+                                Gösterilecek stajyer proje ataması bulunamadı.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Değerlendir / Not Ver -->
+<div class="modal fade" id="modalDegerlendir" tabindex="-1" role="dialog" aria-labelledby="modalDegerlendirLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+            <form asp-action="Evaluate" asp-controller="AdminProje" asp-area="Admin" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="evalId" name="StajyerProjeId" />
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title font-weight-bold" id="modalDegerlendirLabel">
+                        <i class="fas fa-award mr-2"></i>Stajyer Proje Değerlendirmesi
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="card bg-light border-0 mb-3">
+                        <div class="card-body py-2 px-3 small">
+                            <div><strong>Stajyer:</strong> <span id="evalOgrenci"></span></div>
+                            <div class="mt-1"><strong>Proje:</strong> <span id="evalProje"></span></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold text-gray-800">Proje Durumu <span class="text-danger">*</span></label>
+                        <select id="evalDurum" name="Durum" class="form-control" required>
+                            <option value="1">Atandı (Bekliyor)</option>
+                            <option value="2">Devam Ediyor</option>
+                            <option value="3">Teslim Edildi</option>
+                            <option value="4">Onaylandı (Başarılı)</option>
+                            <option value="5">Revize İsteniyor</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold text-gray-800">Başarı Puanı (0 - 100)</label>
+                        <input type="number" id="evalPuan" name="Puan" class="form-control" min="0" max="100" placeholder="Örn: 85" />
+                        <small class="form-text text-muted">Öğrenciye bu görev için verdiğiniz puan.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold text-gray-800">Yönetici Geri Bildirim Notu</label>
+                        <textarea id="evalNot" name="YoneticiNotu" class="form-control" rows="3" placeholder="Öğrenciye proje teslimi ile ilgili geri bildiriminiz ve yorumlarınız..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+                    <button type="submit" class="btn btn-primary font-weight-bold">
+                        <i class="fas fa-save mr-1"></i> Değerlendirmeyi Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.btn-eval').click(function () {
+                var btn = $(this);
+                $('#evalId').val(btn.data('id'));
+                $('#evalOgrenci').text(btn.data('ogrenci'));
+                $('#evalProje').text(btn.data('proje'));
+                $('#evalDurum').val(btn.data('durum'));
+                $('#evalPuan').val(btn.data('puan'));
+                $('#evalNot').val(btn.data('not'));
+                $('#modalDegerlendir').modal('show');
+            });
+        });
+    </script>
+}

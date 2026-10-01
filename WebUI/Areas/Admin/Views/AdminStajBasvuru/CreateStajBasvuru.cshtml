@@ -1,0 +1,155 @@
+﻿@model CreateStajBasvuruDto
+
+@{
+    ViewData["Title"] = "Yeni Staj Başvurusu";
+    Layout = "~/Views/AdminLayout/Index.cshtml";
+}
+
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-user-plus mr-2 text-primary"></i>Yeni Staj Başvurusu Formu</h1>
+    <a href="/Admin/AdminStajBasvuru/StajBasvuruList" class="btn btn-sm btn-secondary shadow-sm">
+        <i class="fas fa-arrow-left fa-sm mr-1"></i> Başvurular Listesine Dön
+    </a>
+</div>
+
+<div asp-validation-summary="All" class="alert alert-danger" style="@(ViewData.ModelState.IsValid ? "display:none;" : "")"></div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Stajyer ve Başvuru Bilgileri</h6>
+    </div>
+    <div class="card-body">
+        <form method="post" action="/Admin/AdminStajBasvuru/CreateStajBasvuru" enctype="multipart/form-data">
+            
+            <div class="row">
+                <!-- Kişisel Bilgiler -->
+                <div class="col-md-6">
+                    <h5 class="text-gray-900 font-weight-bold mb-3 border-bottom pb-2">
+                        <i class="fas fa-user mr-2 text-info"></i>Kişisel Bilgiler
+                    </h5>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Ad <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" asp-for="Ad" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Soyad <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" asp-for="Soyad" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">E-Posta <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" asp-for="Eposta" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Telefon <span class="text-danger">*</span></label>
+                        <input type="tel" class="form-control" asp-for="Telefon" required />
+                    </div>
+                </div>
+
+                <!-- Eğitim Bilgileri -->
+                <div class="col-md-6">
+                    <h5 class="text-gray-900 font-weight-bold mb-3 border-bottom pb-2">
+                        <i class="fas fa-university mr-2 text-info"></i>Eğitim Bilgileri
+                    </h5>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Üniversite / Okul <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" asp-for="Okul" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Bölüm <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" asp-for="Bolum" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Sınıf <span class="text-danger">*</span></label>
+                        <select class="form-control" asp-for="Sinif" required>
+                            <option value="">Seçiniz...</option>
+                            <option value="1. Sınıf">1. Sınıf</option>
+                            <option value="2. Sınıf">2. Sınıf</option>
+                            <option value="3. Sınıf">3. Sınıf</option>
+                            <option value="4. Sınıf">4. Sınıf</option>
+                            <option value="Mezun">Mezun</option>
+                            <option value="Yüksek Lisans">Yüksek Lisans</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Referans (Varsa)</label>
+                        <input type="text" class="form-control" asp-for="Referans" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Staj Detayları -->
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h5 class="text-gray-900 font-weight-bold mb-3 border-bottom pb-2">
+                        <i class="fas fa-briefcase mr-2 text-info"></i>Staj Detayları & Dosyalar
+                    </h5>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="font-weight-bold">Staj Başlangıç Tarihi <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" asp-for="StajBaslangicTarihi" asp-format="{0:yyyy-MM-dd}" required />
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="font-weight-bold">Staj Bitiş Tarihi <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" asp-for="StajBitisTarihi" asp-format="{0:yyyy-MM-dd}" required />
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="font-weight-bold">İlgilendiği Staj Alanı / Konusu</label>
+                        <input type="text" class="form-control" asp-for="StajKonusu" />
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="font-weight-bold">CV Yükle (PDF veya DOCX)</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="cvFile" name="cvFile" accept=".pdf,.doc,.docx" />
+                            <label class="custom-file-label" for="cvFile">Dosya Seçiniz...</label>
+                        </div>
+                        <small class="form-text text-muted">Maksimum dosya boyutu: 10 MB</small>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="form-group">
+                        <label class="font-weight-bold">Kendini Tanıtma Yazısı / Ön Yazı</label>
+                        <textarea class="form-control" rows="4" asp-for="KendiniTanitmaYazisi"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-top pt-3 d-flex justify-content-end">
+                <a href="/Admin/AdminStajBasvuru/StajBasvuruList" class="btn btn-secondary mr-2">İptal</a>
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="fas fa-save mr-1"></i> Başvuruyu Kaydet
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Dosya seçildiğinde adını label üzerinde göster
+        $(".custom-file-input").on("change", function () {
+            var fileName = $(this).val().split("\\").pop();
+            $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+        });
+    </script>
+}
